@@ -4,18 +4,6 @@ Full-stack submission for the **Webbriks Technical Assessment**: a collaborative
 
 **Repository layout:** single repo with `frontend/` and `backend/` directories.
 
-## Assessment requirements
-
-| Requirement | Implementation |
-|-------------|----------------|
-| User registration & token-based login | `POST /user`, `POST /auth/login` — JWT access + refresh tokens |
-| Board owner & sharing with registered users | `Board.ownerId` + `POST /boards/:boardId/share` by email |
-| Access control on boards, columns, tasks | `BoardRoleGuard` — Owner / Editor / Viewer; blocks cross-board access |
-| Boards, columns, tasks CRUD | REST API under `/boards`, `/columns`, `/tasks` |
-| Task move API (reorder + cross-column) | `PATCH /tasks/:id/move` with `columnId` + `position` |
-| Stable task ordering | Position indexes updated in a Prisma transaction on move |
-| Interactive drag-and-drop UI | `@dnd-kit` Kanban board in Next.js |
-
 ## Tech stack
 
 | Layer | Stack |
@@ -47,106 +35,150 @@ app/
         └── services/
 ```
 
-## Prerequisites
+## Getting started
 
-- **Docker Desktop** (recommended — runs the full stack with one command)
-- **Node.js** 22+ (required by Prisma 7.9; only needed for local dev without Docker)
-- **Yarn** 1.x
-- **PostgreSQL** 14+ (only if running the API locally without Docker)
+Clone the repository and open the project folder:
+
+```bash
+git clone <repository-url>
+cd app
+```
+
+Then follow **[Install & run with Docker](#install--run-with-docker)** (recommended) or [Local setup](#local-setup-without-docker) below.
 
 ---
 
-## Docker (recommended)
+## Install & run with Docker
 
-Run the **full stack** (Postgres + API + frontend) from the **repository root**.
+Runs **PostgreSQL**, the **NestJS API**, and the **Next.js frontend** together. No local Node or Postgres install required.
 
-### 1. Environment files
+### Prerequisites
 
-Copy the examples and set secrets:
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
+- Git
+
+### Step 1 — Clone the repository
+
+```bash
+git clone <repository-url>
+cd app
+```
+
+All Docker commands below must be run from this **repository root** (where `docker-compose.yml` lives).
+
+### Step 2 — Create environment files
+
+Copy the example env files:
 
 ```bash
 cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 ```
 
-You need **both** files:
+Edit **`backend/.env`** — at minimum set:
 
-| File | Used by |
+```env
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your-secure-password
+POSTGRES_DB=Kanban
+POSTGRES_PORT=5433
+
+JWT_SECRET=your-long-random-jwt-secret
+JWT_EXPIRES_IN=1h
+JWT_REFRESH_EXPIRES_IN=7d
+PORT=4000
+FRONTEND_URL=http://localhost:3000
+```
+
+Edit **`frontend/.env`** — set a random secret:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:4000
+API_URL=http://localhost:4000
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your-long-random-nextauth-secret
+```
+
+| File | Purpose |
 |------|---------|
-| `backend/.env` | Compose variable substitution, `postgres` container, `api` container |
-| `frontend/.env` | `web` container (NextAuth) |
+| `backend/.env` | Postgres credentials, JWT, API port — also passed to Compose via `--env-file` |
+| `frontend/.env` | NextAuth config — loaded automatically by the `web` service |
 
-**Why does the command only mention `backend/.env`?**
+> Do **not** commit `.env` files. They are listed in `.gitignore`.
 
-```bash
-docker compose --env-file backend/.env up --build
-```
-
-The `--env-file` flag supplies variables for **Compose itself** (e.g. `${POSTGRES_PASSWORD}`, `${POSTGRES_PORT}`, `${PORT}`). The frontend env is loaded automatically via `env_file: ./frontend/.env` on the `web` service in `docker-compose.yml`.
-
-### 2. Start everything
+### Step 3 — Build and start all services
 
 ```bash
 docker compose --env-file backend/.env up --build
 ```
 
-| Service | Role | URL |
-|---------|------|-----|
-| `web` | Next.js frontend | http://localhost:3000 |
+First run downloads images, builds the API and frontend, starts Postgres, runs migrations, then starts the app. Wait until logs show the API and web containers are healthy.
+
+**What starts:**
+
+| Compose service | Description | URL |
+|-----------------|-------------|-----|
+| `postgres` | PostgreSQL 16 database | `localhost:5433` (host; optional, for psql/Prisma Studio) |
 | `api` | NestJS backend | http://localhost:4000 |
-| `postgres` | PostgreSQL 16 | `localhost:5433` on the host (default) |
+| `web` | Next.js frontend | http://localhost:3000 |
 
-- **Migrations** run automatically when the `api` container starts (`docker-entrypoint.sh` → `prisma migrate deploy`).
-- **Data** persists in the `postgres_data` Docker volume.
-- **Node 22** is used in both Dockerfiles (required by Prisma 7.9).
+- Database migrations run automatically in the `api` container on startup.
+- Data is stored in the Docker volume `postgres_data`.
 
-Open http://localhost:3000 → sign up → create a board.
+### Step 4 — Use the app
 
-> Run the command **without** a service name to start frontend + backend + database.  
-> `docker compose ... up --build api` starts only the API (and Postgres), not the frontend.
+1. Open **http://localhost:3000**
+2. Click **Sign up** and create an account
+3. Create a board and add columns/tasks
 
-### 3. Useful commands
+> Run the command **without** a service name (`api` or `web`) so all three services start.  
+> `docker compose ... up --build api` starts only the backend — the frontend will not be available on port 3000.
 
-Run from the repo root:
+### Step 5 — Stop the stack
+
+Press **`Ctrl+C`** in the terminal, then optionally remove containers:
 
 ```bash
-# Detached (background)
-docker compose --env-file backend/.env up --build -d
-
-# Rebuild one service after code changes
-docker compose --env-file backend/.env up --build web    # frontend
-docker compose --env-file backend/.env up --build api    # backend
-
-# Logs
-docker compose --env-file backend/.env logs -f web
-docker compose --env-file backend/.env logs -f api
-docker compose --env-file backend/.env logs -f postgres
-
-# Stop
 docker compose --env-file backend/.env down
+```
 
-# Stop and delete database volume (fresh DB)
+To stop **and delete all database data** (fresh start):
+
+```bash
 docker compose --env-file backend/.env down -v
 ```
 
-### 4. How environment variables work in Docker
+### Useful Docker commands
 
-Compose **overrides** several values at runtime:
+Run from the repository root:
 
-| Variable | In container | Purpose |
-|----------|----------------|---------|
-| `DATABASE_URL` | `api` → `@postgres:5432` | API talks to Postgres on the Docker network |
-| `API_URL` | `web` → `http://api:4000` | Next.js **server** (NextAuth login, SSR) → API |
-| `NEXT_PUBLIC_API_URL` | `web` → `http://localhost:4000` | **Browser** → API via published port |
-| `NEXTAUTH_URL` | `web` → `http://localhost:3000` | NextAuth callback URL |
+```bash
+# Run in background (detached)
+docker compose --env-file backend/.env up --build -d
 
-The browser always calls `http://localhost:4000`. Inside the `web` container, the server must use `http://api:4000` (the Compose service name), not `localhost`.
+# View logs
+docker compose --env-file backend/.env logs -f
+docker compose --env-file backend/.env logs -f web
+docker compose --env-file backend/.env logs -f api
 
-`POSTGRES_PORT=5433` in `backend/.env` maps Postgres to host port **5433** by default so it does not clash with a local Postgres on **5432**.
+# Rebuild after code changes
+docker compose --env-file backend/.env up --build web    # frontend only
+docker compose --env-file backend/.env up --build api     # backend only
+docker compose --env-file backend/.env up --build        # everything
 
-### 5. Connect to the Docker database (optional)
+# Check running containers
+docker compose --env-file backend/.env ps
+```
 
-From the host (psql, Prisma Studio, pgAdmin):
+### Why `--env-file backend/.env`?
+
+The flag supplies variables for **Docker Compose itself** (e.g. `${POSTGRES_PASSWORD}`, `${POSTGRES_PORT}`, `${PORT}`).
+
+The **frontend** env is not missing — `docker-compose.yml` loads `frontend/.env` into the `web` container via `env_file`. One command still starts frontend + backend + database.
+
+### Connect to the Docker database (optional)
+
+From your machine (psql, Prisma Studio, pgAdmin):
 
 ```
 postgresql://postgres:YOUR_PASSWORD@localhost:5433/Kanban?schema=public
@@ -154,27 +186,21 @@ postgresql://postgres:YOUR_PASSWORD@localhost:5433/Kanban?schema=public
 
 Use the same `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB` from `backend/.env`.
 
-### 6. Troubleshooting
+### Troubleshooting
 
-**Frontend not loading (`localhost:3000` connection refused)**  
-You likely started only the API. Run the full stack (no service name) or `up --build web`.
-
-**Login fails after signup (401 on `/api/auth/callback/credentials`)**  
-Rebuild the `web` container so server-side auth picks up code and env changes:
-
-```bash
-docker compose --env-file backend/.env up --build web
-```
-
-**“Invalid email or password” with credentials that worked before**  
-Docker Postgres is a **separate database** from local dev. Sign out, clear cookies for `localhost:3000`, and sign up again against the Docker stack. Do not reuse accounts created only in local Postgres or Prisma Studio on port `5432`.
-
-**API unhealthy / migrations fail**  
-Ensure `POSTGRES_PASSWORD` is set in `backend/.env`. Check logs: `docker compose --env-file backend/.env logs -f api`.
+| Problem | Fix |
+|---------|-----|
+| `localhost:3000` connection refused | Start the **full** stack, not `up api` only |
+| Login fails after signup | Rebuild frontend: `docker compose --env-file backend/.env up --build web` |
+| Wrong password / user not found | Docker DB is separate from local Postgres — sign up again at http://localhost:3000 |
+| `POSTGRES_PASSWORD` error on start | Set `POSTGRES_PASSWORD` in `backend/.env` |
+| Port already in use | Change `POSTGRES_PORT` or `PORT` in `backend/.env`, or stop the conflicting service |
 
 ---
 
 ## Local setup (without Docker)
+
+**Requirements:** Node.js 22+, Yarn, PostgreSQL 14+
 
 ### Step 1 — Database
 
