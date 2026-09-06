@@ -92,6 +92,25 @@ docker compose --env-file backend/.env up --build web             # rebuild fron
 > Use the full `up --build` command (no service name) so frontend, API, and Postgres all start.  
 > `frontend/.env` is loaded automatically by Compose — only `backend/.env` is passed on the CLI.
 
+### Troubleshooting
+
+**`P1000: Authentication failed` / `password authentication failed for user "postgres"`**
+
+PostgreSQL stores the password on **first startup** in the Docker volume. If you change `POSTGRES_PASSWORD` in `backend/.env` later, the old password is still in the volume.
+
+Fix — reset the database volume, then start again:
+
+```bash
+docker compose --env-file backend/.env down -v
+docker compose --env-file backend/.env up --build
+```
+
+Also check:
+
+- `POSTGRES_PASSWORD` is set in `backend/.env` (not empty)
+- Use a simple password without `@`, `#`, or `:` (these can break the connection URL)
+- Do not rely on `DATABASE_URL` in `backend/.env` for Docker — Compose builds it automatically for the `api` service
+
 ---
 
 ## Local development (without Docker)
