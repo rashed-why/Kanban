@@ -45,19 +45,67 @@ git clone <repository-url>
 cd app
 ```
 
-### 2. Environment
+### 2. Create & edit environment files
+
+**Create the files** (copy from examples):
 
 ```bash
 cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 ```
 
-Set secrets in both files:
+**Edit them** in any text editor (VS Code, Cursor, nano, etc.):
 
-- **`backend/.env`** — `POSTGRES_PASSWORD`, `JWT_SECRET`
-- **`frontend/.env`** — `NEXTAUTH_SECRET`
+```bash
+# examples
+code backend/.env frontend/.env
+# or
+nano backend/.env
+nano frontend/.env
+```
 
-See `.env.example` in each folder for all variables.
+#### `backend/.env`
+
+Replace the placeholder values. Example:
+
+```env
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=mysecret123
+POSTGRES_DB=Kanban
+POSTGRES_PORT=5433
+
+JWT_SECRET=a-long-random-string-at-least-32-chars
+JWT_EXPIRES_IN=1h
+JWT_REFRESH_EXPIRES_IN=7d
+PORT=4000
+FRONTEND_URL=http://localhost:3000
+```
+
+| Variable | What to set |
+|----------|-------------|
+| `POSTGRES_PASSWORD` | Any strong password (no `@`, `#`, or `:`) |
+| `JWT_SECRET` | Random string (e.g. run `openssl rand -hex 32`) |
+
+> Do **not** uncomment or add `DATABASE_URL` for Docker — Compose sets it automatically.
+
+#### `frontend/.env`
+
+Replace the placeholder secret. Example:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:4000
+API_URL=http://localhost:4000
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=another-long-random-string
+```
+
+| Variable | What to set |
+|----------|-------------|
+| `NEXTAUTH_SECRET` | Random string (e.g. run `openssl rand -hex 32`) |
+
+Leave `NEXT_PUBLIC_API_URL`, `API_URL`, and `NEXTAUTH_URL` as shown unless you use custom ports.
+
+> Never commit `.env` files — they are gitignored.
 
 ### 3. Start
 
