@@ -1,0 +1,186 @@
+### Create user
+POST http://localhost:4000/user
+Content-Type: application/json
+
+{
+    "name": "Jane Doe",
+    "email": "jane@example.com",
+    "password": "111"
+}
+
+### Create user with role in body — expect 400 (role is not on the DTO)
+POST http://localhost:4000/user
+Content-Type: application/json
+
+{
+    "name": "aa",
+    "email": "a@abc.com",
+    "password": "111"
+}
+
+### Login — paste accessToken, refreshToken, and user.id into the requests below
+POST http://localhost:4000/auth/login
+Content-Type: application/json
+
+{
+    "email": "a@abc.com",
+    "password": "111"
+}
+
+### Me — should include "role": "USER"
+GET http://localhost:4000/auth/me
+Authorization: Bearer <accessToken>
+
+### Refresh
+POST http://localhost:4000/auth/refresh
+Content-Type: application/json
+
+{
+    "refreshToken": "<refreshToken>"
+}
+
+### Logout
+POST http://localhost:4000/auth/logout
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+    "refreshToken": "<refreshToken>"
+}
+
+### Create board
+POST http://localhost:4000/boards
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXRvbDltZjMwMDAwY290a2lyNHhwY2QxIiwiaWF0IjoxNzg4NjI1MjE0LCJleHAiOjE3ODg2Mjg4MTR9.7R7LtSBP4V9w20yqJljjIoWN39KHFNpgoawpEdOjsLY
+Content-Type: application/json
+
+{
+    "title": "Sprint board"
+}
+
+### List boards — owner or member
+GET http://localhost:4000/boards
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXRvbDltZjMwMDAwY290a2lyNHhwY2QxIiwiaWF0IjoxNzg4NjI1MjE0LCJleHAiOjE3ODg2Mjg4MTR9.7R7LtSBP4V9w20yqJljjIoWN39KHFNpgoawpEdOjsLY
+
+### Get one board — with columns and tasks
+GET http://localhost:4000/boards/cmtolbop70003cotkk9638npb
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXRvbDltZjMwMDAwY290a2lyNHhwY2QxIiwiaWF0IjoxNzg4NjI1MjE0LCJleHAiOjE3ODg2Mjg4MTR9.7R7LtSBP4V9w20yqJljjIoWN39KHFNpgoawpEdOjsLY
+
+### Update board title — owner only. Members should get 404
+PATCH http://localhost:4000/boards/<boardId>
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+    "title": "Renamed board"
+}
+
+### Share board — owner only. Assign EDITOR or VIEWER
+POST http://localhost:4000/boards/<boardId>/share
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+    "email": "karim@example.com",
+    "role": "EDITOR"
+}
+
+### Share board as VIEWER — read-only access
+POST http://localhost:4000/boards/<boardId>/share
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+    "email": "viewer@example.com",
+    "role": "VIEWER"
+}
+
+### List board members — owner, editor, or viewer access
+GET http://localhost:4000/boards/<boardId>/members
+Authorization: Bearer <accessToken>
+
+### Remove board member — owner only
+DELETE http://localhost:4000/boards/<boardId>/members/<userId>
+Authorization: Bearer <accessToken>
+
+### Delete board — owner only. Editors/viewers should get 404
+DELETE http://localhost:4000/boards/cmtolbphi0004cotkai01udbx
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXRvbDltZjMwMDAwY290a2lyNHhwY2QxIiwiaWF0IjoxNzg4NjI1MjE0LCJleHAiOjE3ODg2Mjg4MTR9.7R7LtSBP4V9w20yqJljjIoWN39KHFNpgoawpEdOjsLY
+
+### Create column — editor or owner. Appends at end if position omitted
+POST http://localhost:4000/boards/<boardId>/columns
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+    "title": "To Do"
+}
+
+### Create column at specific position — shifts existing columns
+POST http://localhost:4000/boards/<boardId>/columns
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+    "title": "In Progress",
+    "position": 0
+}
+
+### Update column title or position — editor or owner. Viewers get 404
+PATCH http://localhost:4000/columns/<columnId>
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+    "title": "Done",
+    "position": 2
+}
+
+### Delete column — editor or owner. Renumbers remaining columns
+DELETE http://localhost:4000/columns/<columnId>
+Authorization: Bearer <accessToken>
+
+### Create task — editor or owner
+POST http://localhost:4000/columns/<columnId>/tasks
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+    "title": "Write API docs",
+    "description": "Document board endpoints"
+}
+
+### Update task — editor or owner. Viewers get 404
+PATCH http://localhost:4000/tasks/<taskId>
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+    "title": "Updated task title",
+    "description": "Updated description"
+}
+
+### Delete task — editor or owner. Viewers get 404
+DELETE http://localhost:4000/tasks/<taskId>
+Authorization: Bearer <accessToken>
+
+### Move task within same column — e.g. move Task C from position 2 to 0
+PATCH http://localhost:4000/tasks/<taskId>/move
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+    "fromColumnId": "<columnId>",
+    "toColumnId": "<columnId>",
+    "newPosition": 0
+}
+
+### Move task to another column — e.g. from Todo position 2 to Doing position 1
+PATCH http://localhost:4000/tasks/<taskId>/move
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+    "fromColumnId": "<todoColumnId>",
+    "toColumnId": "<doingColumnId>",
+    "newPosition": 1
+}

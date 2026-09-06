@@ -1,0 +1,95 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum BoardRole {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+// Board sharing:
+// - Owner lives on Board.ownerId (creator, not duplicated in BoardMember).
+// - Shared users are BoardMember rows with role EDITOR or VIEWER.
+// - OWNER in BoardRole is used for authorization checks only.
+
+model User {
+  id               String         @id @default(cuid())
+  name             String
+  email            String         @unique
+  password         String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  refreshTokens    RefreshToken[]
+  ownedBoards      Board[]
+  boardMemberships BoardMember[]
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  email     String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Board {
+  id        String        @id @default(cuid())
+  title     String
+  ownerId   String
+  owner     User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  members   BoardMember[]
+  columns   Column[]
+  createdAt DateTime      @default(now())
+
+  @@index([ownerId])
+}
+
+/// Join table for users shared onto a board (EDITOR / VIEWER).
+/// The board owner is Board.ownerId, not a row here.
+model BoardMember {
+  id        String    @id @default(cuid())
+  boardId   String
+  userId    String
+  role      BoardRole @default(VIEWER)
+  board     Board     @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+
+  @@unique([boardId, userId])
+  @@index([userId])
+}
+
+model Column {
+  id        String   @id @default(cuid())
+  title     String
+  position  Int
+  boardId   String
+  board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  tasks     Task[]
+  createdAt DateTime @default(now())
+
+  @@index([boardId, position])
+}
+
+model Task {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  position    Int
+  columnId    String
+  column      Column   @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@index([columnId, position])
+}

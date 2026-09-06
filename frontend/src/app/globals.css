@@ -1,0 +1,164 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --kanban-list: #ffffff1a;
+  --kanban-card: #22272b;
+  --kanban-canvas: linear-gradient(160deg, #0b1220 0%, #162032 45%, #0a101c 100%);
+  --kanban-header: rgba(0, 0, 0, 0.15);
+  --kanban-text: #b6c2cf;
+  --kanban-heading: #ffffff;
+  --kanban-muted: #8c9bab;
+  --kanban-hover: rgba(255, 255, 255, 0.08);
+  --kanban-accent: #579dff;
+  --dashboard-bg: #1d2125;
+  --dashboard-sidebar: #161a1d;
+  --dashboard-topbar: #1d2125;
+  --dashboard-text: #b6c2cf;
+  --dashboard-heading: #ffffff;
+  --dashboard-muted: #8c9bab;
+  --dashboard-hover: rgba(255, 255, 255, 0.08);
+  --dashboard-accent: #579dff;
+  --dashboard-surface: #22272b;
+  --dashboard-border: #38414a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #1d2125;
+    --foreground: #b6c2cf;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+.kanban-canvas {
+  background: var(--kanban-canvas);
+}
+
+.kanban-list {
+  background-color: var(--kanban-list);
+  backdrop-filter: blur(8px);
+}
+
+.kanban-card {
+  background-color: var(--kanban-card);
+  box-shadow: 0 1px 1px rgba(9, 30, 66, 0.25);
+}
+
+.kanban-card:hover {
+  background-color: #282e33;
+}
+
+.kanban-add-btn:hover {
+  background-color: var(--kanban-hover);
+}
+
+.kanban-field {
+  background-color: #22272b;
+  border: 2px solid #38414a;
+  color: var(--kanban-heading);
+}
+
+.kanban-field::placeholder {
+  color: var(--kanban-muted);
+}
+
+.kanban-field:focus {
+  border-color: var(--kanban-accent);
+  outline: none;
+}
+
+.kanban-sidebar {
+  background-color: #161a1d;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dashboard-theme {
+  background-color: var(--dashboard-bg);
+  color: var(--dashboard-text);
+}
+
+.dashboard-topbar {
+  background-color: var(--dashboard-topbar);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dashboard-sidebar {
+  background-color: var(--dashboard-sidebar);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dashboard-nav-active {
+  background-color: rgba(87, 157, 255, 0.16);
+  color: var(--dashboard-heading);
+}
+
+.dashboard-search {
+  background-color: rgba(255, 255, 255, 0.08);
+  border: none;
+  color: var(--dashboard-heading);
+}
+
+.dashboard-search::placeholder {
+  color: var(--dashboard-muted);
+}
+
+.dashboard-search:focus {
+  background-color: rgba(255, 255, 255, 0.12);
+  outline: 2px solid var(--dashboard-accent);
+  outline-offset: 0;
+}
+
+.dashboard-modal {
+  background-color: var(--dashboard-surface);
+  border: 1px solid var(--dashboard-border);
+}
+
+.dashboard-field {
+  background-color: #22272b;
+  border: 2px solid var(--dashboard-border);
+  color: var(--dashboard-heading);
+}
+
+.dashboard-field::placeholder {
+  color: var(--dashboard-muted);
+}
+
+.dashboard-field:focus {
+  border-color: var(--dashboard-accent);
+  outline: none;
+}
+
+.dashboard-create-card {
+  background-color: rgba(255, 255, 255, 0.08);
+  transition: background-color 0.15s ease;
+}
+
+.dashboard-create-card:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.Toastify__toast-container {
+  width: min(100%, 28rem);
+}
+
+.Toastify__toast-theme--dark.Toastify__toast--success {
+  background: #1f845a;
+}
+
+.Toastify__toast-theme--dark.Toastify__toast--error {
+  background: #ae2a19;
+}
