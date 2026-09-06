@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Webbriks Kanban — Frontend
 
-## Getting Started
+Next.js 16 app. See the [root README](../README.md) for full project setup.
 
-First, run the development server:
+## Local development (without Docker)
 
 ```bash
-npm run dev
-# or
+yarn install
+cp .env.example .env
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). Requires the API at `http://localhost:4000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Docker
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Docker orchestration lives at the **repository root** — this folder only contains the app image:
 
-## Learn More
+| File | Purpose |
+|------|---------|
+| `Dockerfile` | Production Next.js standalone image |
+| `.dockerignore` | Excludes secrets and build artifacts |
 
-To learn more about Next.js, take a look at the following resources:
+From the repo root:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+docker compose --env-file backend/.env up --build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Environment variables
 
-## Deploy on Vercel
+See `.env.example`. In Docker, `API_URL` is set to `http://api:4000` by root `docker-compose.yml`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Scripts
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+yarn dev
+yarn build
+yarn start
+yarn lint
+```

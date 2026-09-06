@@ -1,10 +1,8 @@
 import { getServerSession as getNextAuthSession } from "next-auth";
+import { getApiBaseUrl } from "@/lib/api-base-url";
 import { authOptions } from "@/lib/nextauth.config";
 
-const apiBaseUrl =
-  process.env.NEXT_PUBLIC_API_URL ??
-  process.env.API_URL ??
-  "http://localhost:4000";
+const apiBaseUrl = getApiBaseUrl();
 
 export type CurrentUser = {
   id: string;

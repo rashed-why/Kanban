@@ -1,0 +1,90 @@
+# Run from the repository root:
+#   docker compose --env-file backend/.env up --build
+#
+# Requires backend/.env (Postgres, JWT) and frontend/.env (NextAuth).
+
+name: webbriks-kanban
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in backend/.env}
+      POSTGRES_DB: ${POSTGRES_DB:-Kanban}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-Kanban}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-Kanban}?schema=public
+      PORT: ${PORT:-4000}
+      FRONTEND_URL: http://localhost:3000
+    ports:
+      - "${PORT:-4000}:${PORT:-4000}"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"const p=Number(process.env.PORT||4000);const s=require('net').connect(p,'127.0.0.1',()=>{s.end();process.exit(0)});s.on('error',()=>process.exit(1))\"",
+        ]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
+      retries: 5
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:${PORT:-4000}
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    env_file:
+      - ./frontend/.env
+    environment:
+      API_URL: http://api:4000
+      NEXT_PUBLIC_API_URL: http://localhost:${PORT:-4000}
+      NEXTAUTH_URL: http://localhost:3000
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"const s=require('net').connect(3000,'127.0.0.1',()=>{s.end();process.exit(0)});s.on('error',()=>process.exit(1))\"",
+        ]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
+      retries: 5
+
+volumes:
+  postgres_data:

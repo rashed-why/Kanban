@@ -1,4 +1,5 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import { getApiBaseUrl } from "@/lib/api-base-url";
 import { signOut } from "next-auth/react";
 import {
   clearAuthCache,
@@ -10,15 +11,9 @@ type RetryConfig = InternalAxiosRequestConfig & {
   _retry?: boolean;
 };
 
-const apiBaseUrl =
-  process.env.NEXT_PUBLIC_API_URL ??
-  process.env.API_URL ??
-  "http://localhost:4000";
-
 let refreshPromise: Promise<string | null> | null = null;
 
 const api = axios.create({
-  baseURL: `${apiBaseUrl}/`,
   withCredentials: true,
   headers: {
     Accept: "application/json",
@@ -42,6 +37,8 @@ const api = axios.create({
 });
 
 api.interceptors.request.use(async (config) => {
+  config.baseURL = `${getApiBaseUrl()}/`;
+
   if (typeof window === "undefined") {
     return config;
   }

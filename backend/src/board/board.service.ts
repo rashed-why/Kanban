@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { BoardRole } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
@@ -40,7 +41,16 @@ const boardDetailInclude = {
 export class BoardService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(userId: string, createBoardDto: CreateBoardDto) {
+  async create(userId: string, createBoardDto: CreateBoardDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
     return this.prisma.board.create({
       data: {
         title: createBoardDto.title,

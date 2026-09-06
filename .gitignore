@@ -1,10 +1,14 @@
 # Dependencies
 node_modules/
 
-# Environment (keep .env.example if added)
+# Environment — never commit secrets (.env.example files stay tracked)
 .env
 .env.*
 !.env.example
+
+# Docker — local/machine-specific overrides (base docker-compose.yml is in repo)
+docker-compose.override.yml
+docker-compose.*.local.yml
 
 # Build output
 dist/
@@ -12,6 +16,14 @@ dist/
 out/
 build/
 *.tsbuildinfo
+
+# NestJS
+backend/dist/
+
+# Next.js
+frontend/.next/
+frontend/out/
+.vercel
 
 # Test coverage
 coverage/
@@ -35,12 +47,10 @@ Thumbs.db
 *.swo
 *~
 
-# Next.js
-.vercel
-
 # Turbo / cache
 .turbo
 .cache
 
-# Optional: project uses Yarn; ignore npm lockfiles if present
+# Optional: project uses Yarn 1.x
 package-lock.json
+pnpm-lock.yaml
