@@ -4,13 +4,19 @@ Collaborative Kanban app — boards, columns, tasks, drag-and-drop, and board sh
 
 Monorepo: `frontend/` (Next.js) + `backend/` (NestJS).
 
+## Demo
+
+Watch a walkthrough of the app (signup, boards, and Kanban features):
+
+**[Demo video on Loom](https://www.loom.com/share/a25145a03c0c4f798c0fa60a8e5f2ca6)**
+
 ## Tech stack
 
-| Layer | Stack |
-|-------|-------|
+| Layer        | Stack                                                                                                          |
+| ------------ | -------------------------------------------------------------------------------------------------------------- |
 | **Frontend** | Next.js 16, React 19, TypeScript, Tailwind CSS 4, React Query, Formik, Zod, NextAuth, Radix Dialog, `@dnd-kit` |
-| **Backend** | NestJS 11, TypeScript, Prisma 7, PostgreSQL, Passport (JWT) |
-| **DevOps** | Docker Compose, PostgreSQL 16, Node 22 |
+| **Backend**  | NestJS 11, TypeScript, Prisma 7, PostgreSQL, Passport (JWT)                                                    |
+| **DevOps**   | Docker Compose, PostgreSQL 16, Node 22                                                                         |
 
 ## Project structure
 
@@ -81,10 +87,10 @@ PORT=4000
 FRONTEND_URL=http://localhost:3000
 ```
 
-| Variable | What to set |
-|----------|-------------|
-| `POSTGRES_PASSWORD` | Any strong password (no `@`, `#`, or `:`) |
-| `JWT_SECRET` | Random string (e.g. run `openssl rand -hex 32`) |
+| Variable            | What to set                                     |
+| ------------------- | ----------------------------------------------- |
+| `POSTGRES_PASSWORD` | Any strong password (no `@`, `#`, or `:`)       |
+| `JWT_SECRET`        | Random string (e.g. run `openssl rand -hex 32`) |
 
 > Do **not** uncomment or add `DATABASE_URL` for Docker — Compose sets it automatically.
 
@@ -99,8 +105,8 @@ NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=another-long-random-string
 ```
 
-| Variable | What to set |
-|----------|-------------|
+| Variable          | What to set                                     |
+| ----------------- | ----------------------------------------------- |
 | `NEXTAUTH_SECRET` | Random string (e.g. run `openssl rand -hex 32`) |
 
 Leave `NEXT_PUBLIC_API_URL`, `API_URL`, and `NEXTAUTH_URL` as shown unless you use custom ports.
@@ -115,10 +121,10 @@ From the **repo root**:
 docker compose --env-file backend/.env up --build
 ```
 
-| Service | URL |
-|---------|-----|
-| App | http://localhost:3000 |
-| API | http://localhost:4000 |
+| Service | URL                   |
+| ------- | --------------------- |
+| App     | http://localhost:3000 |
+| API     | http://localhost:4000 |
 
 Migrations run automatically on startup. Open http://localhost:3000 → **Sign up** → create a board.
 
